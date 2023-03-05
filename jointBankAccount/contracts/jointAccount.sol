@@ -40,12 +40,30 @@ contract BankAccount {
         _;
     }
 
-    function deposit(uint accountId) external payable {
+    function deposit(uint accountId) external payable accountOwner(accountId) {
         accounts[accountId].balance += msg.value;
 
     }
 
     function createAccount(address[] calldata otherOwners) external {
+        address[] memory owners = new address[](otherOwners.length + 1);
+        owners[otherOwners.length] = msg.sender;
+
+        uint id = nextAccountId;
+
+        for(uint idx; idx < owners.length; idx++){
+            if(idx < owners.length - 1){
+                owners[idx] = otherOwners[idx];
+            }
+            if(userAccounts[owners[idx]].length > 2){
+                revert("each user can have a max of 3 accounts");
+            }
+            userAccounts[owners[idx]].push(id);
+        }
+
+        accounts[id].owners = owners;
+        nextAccountId++;
+        emit AccountCreated(owners, id, block.timestamp);
 
     }
 
