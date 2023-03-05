@@ -65,6 +65,12 @@ contract BankAccount {
         _;
     }
 
+    modifier canWithdraw(uint accountId, uint withdrawId){
+        require(accounts[accountId].withdrawRequests[withdrawId].user == msg.sender, "you did not create this request");
+        require(accounts[accountId].withdrawRequests[withdrawId].approved, "this request is not approved");
+        _;
+    }
+
     function deposit(uint accountId) external payable accountOwner(accountId) {
         accounts[accountId].balance += msg.value;
 
