@@ -9,7 +9,7 @@ contract BankAccount {
     event AccountCreated (address[] owners, uint indexed id, uint timpstamp);
 
     struct withdrawRequest {
-        address users;
+        address user;
         uint amount;
         uint approvals;
         mapping(address => bool) ownersApproved;
@@ -19,7 +19,7 @@ contract BankAccount {
     struct Account {
         address[] owners;
         uint balance;
-        mapping(uint => withdrawRequest) withdraweRequests;
+        mapping(uint => withdrawRequest) withdrawRequests;
     }
 
     mapping(uint => Account) accounts;
@@ -56,7 +56,7 @@ contract BankAccount {
 
     }
 
-    function createAccount(address[] calldata otherOwners) external {
+    function createAccount(address[] calldata otherOwners) external validOwners(otherOwners) {
         address[] memory owners = new address[](otherOwners.length + 1);
         owners[otherOwners.length] = msg.sender;
 
@@ -78,7 +78,13 @@ contract BankAccount {
 
     }
 
-    function requestWithdrawl(uint accountId, uint amount) external {
+    function requestWithdrawl(uint accountId, uint amount) external accountOwner(accountId){
+        uint256 id = nextWithdrawId;
+        withdrawRequest storage request = accounts[accountId].withdrawRequests[id];
+        request.user = msg.sender;
+        request.amount = amount;
+        nextWithdrawId++;
+        emit withdrawRequested(msg.sender, accountId, id, amount, block.timestamp);
 
     }
     function approveWithdrawl(uint accountId, uint withdrawId) external {
