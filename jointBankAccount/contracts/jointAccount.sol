@@ -28,7 +28,20 @@ contract BankAccount {
     uint nextAccountId;
     uint nextWithdrawId;
 
+    modifier accountOwner(uint accountId){
+        bool isOwner;
+        for(uint idx; idx < accounts[accountId].owners.length; idx++){
+            if(accounts[accountId].owners[idx] == msg.sender){
+                isOwner = true;
+                break;
+            }
+        }
+        require(isOwner, "you are not an owner of this account");
+        _;
+    }
+
     function deposit(uint accountId) external payable {
+        accounts[accountId].balance += msg.value;
 
     }
 
@@ -54,8 +67,8 @@ contract BankAccount {
     function getApprovals(uint accountId, uint withdrawId) public view returns (uint) {
 
     }
-    function getAccounts() public view returns (uint[]) {
-        
+    function getAccounts() public view returns (uint[] memory) {
+
     }
 
 
