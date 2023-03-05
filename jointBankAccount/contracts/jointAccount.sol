@@ -39,6 +39,7 @@ contract BankAccount {
         require(isOwner, "you are not an owner of this account");
         _;
     }
+
     modifier validOwners (address[] calldata owners) {
         require (owners.length + 1 <= 4, "maximum of 4 owners per account");
         for (uint i; i < owners.length; i++) {
@@ -49,6 +50,10 @@ contract BankAccount {
             }
         }
         _;
+    }
+
+    modifier sufficientBalance(uint accountId, uint amount){
+        require(accounts[accountId].balance >= amount, "insufficient balance")
     }
 
     function deposit(uint accountId) external payable accountOwner(accountId) {
@@ -78,7 +83,7 @@ contract BankAccount {
 
     }
 
-    function requestWithdrawl(uint accountId, uint amount) external accountOwner(accountId){
+    function requestWithdrawl(uint accountId, uint amount) external accountOwner(accountId) sufficientBalance(accountId, amount){
         uint256 id = nextWithdrawId;
         withdrawRequest storage request = accounts[accountId].withdrawRequests[id];
         request.user = msg.sender;
