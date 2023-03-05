@@ -73,7 +73,6 @@ contract BankAccount {
 
     function deposit(uint accountId) external payable accountOwner(accountId) {
         accounts[accountId].balance += msg.value;
-
     }
 
     function createAccount(address[] calldata otherOwners) external validOwners(otherOwners) {
@@ -95,7 +94,6 @@ contract BankAccount {
         accounts[id].owners = owners;
         nextAccountId++;
         emit AccountCreated(owners, id, block.timestamp);
-
     }
 
     function requestWithdrawl(uint accountId, uint amount) external accountOwner(accountId) sufficientBalance(accountId, amount){
@@ -105,8 +103,8 @@ contract BankAccount {
         request.amount = amount;
         nextWithdrawId++;
         emit withdrawRequested(msg.sender, accountId, id, amount, block.timestamp);
-
     }
+
     function approveWithdrawl(uint accountId, uint withdrawId) external accountOwner(accountId) canApprove(accountId, withdrawId) {
         withdrawRequest storage request = accounts[accountId].withdrawRequests[withdrawId];
         request.approvals++;
@@ -115,10 +113,9 @@ contract BankAccount {
         if (request.approvals == accounts[accountId].owners.length - 1){
             request.approved = true;
         }
-
-
     }
-    function withdraw(uint accountId, uint withdrawId) external {
+
+    function withdraw(uint accountId, uint withdrawId) external canWithdraw(accountId, withdrawId) {
         uint amount = accounts[accountId].withdrawRequests[withdrawId].amount;
         require (accounts[accountId].balance >= amount, "insufficient balance");
 
@@ -131,19 +128,21 @@ contract BankAccount {
         emit Withdraw(withdrawId, block.timestamp);
 
     }
+
     function getBalance(uint accountId) public view returns (uint) {
-
+        return accounts[accountId].balance;
     }
+
     function getOwners(uint accountId) public view returns (address[] memory) {
-
+        return accounts[accountId].owners;
     }
+
     function getApprovals(uint accountId, uint withdrawId) public view returns (uint) {
-
+        return accounts[accountId].withdrawRequests[withdrawId].approvals;
     }
+
     function getAccounts() public view returns (uint[] memory) {
+        return userAccounts[msg.sender];
 
     }
-
-
-
 }
