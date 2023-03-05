@@ -53,7 +53,16 @@ contract BankAccount {
     }
 
     modifier sufficientBalance(uint accountId, uint amount){
-        require(accounts[accountId].balance >= amount, "insufficient balance")
+        require(accounts[accountId].balance >= amount, "insufficient balance");
+        _;
+    }
+
+    modifier canApprove(uint256 accountId, uint256 withdrawId){
+        require(!accounts[accountId].withdrawRequests[withdrawId].approved, "this request is already approved");
+        require(accounts[accountId].withdrawRequests[withdrawId].user != msg.sender, "you cannot approve this request");
+        require(accounts[accountId].withdrawRequests[withdrawId].user != address[0], "this request does not exist");
+        require(!accounts[accountId].withdrawRequests[withdrawId].ownersApproved[msg.sender], "you have already approved this request");
+        _;
     }
 
     function deposit(uint accountId) external payable accountOwner(accountId) {
@@ -93,7 +102,7 @@ contract BankAccount {
 
     }
     function approveWithdrawl(uint accountId, uint withdrawId) external accountOwner(accountId) {
-        withdrawRequest storage request = account[accountId].withdrawRequests[withdraw];
+        withdrawRequest storage request = accounts[accountId].withdrawRequests[withdraw];
         request.approvals++;
         request.ownersApproved[msg.sender] = true;
 
