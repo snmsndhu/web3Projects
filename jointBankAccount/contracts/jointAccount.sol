@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 contract BankAccount {
     event Deposit (address indexed user, uint256 indexed accountId, uint256 value, uint256 timestamp);
     event withdrawRequested (address indexed user, uint256 indexed accountId, uint256 indexed withdrawId, uint256 amount, uint256 timeStamp);
-    event Withdraw (uint indexed withdrwaId, uint timestamp);
+    event Withdraw (uint indexed withdrawId, uint timestamp);
     event AccountCreated (address[] owners, uint indexed id, uint timpstamp);
 
     struct withdrawRequest {
@@ -113,6 +113,16 @@ contract BankAccount {
 
     }
     function withdraw(uint accountId, uint withdrawId) external {
+        uint amount = accounts[accountId].withdrawRequests[withdrawId].amount;
+        require (accounts[accountId].balance >= amount, "insufficient balance");
+
+        accounts[accountId].balance -= amount;
+        delete accounts[accountId].withdrawRequests[withdrawId];
+
+        (bool sent,) = payable(msg.sender).call{value: amount}("");
+        require (sent);
+        
+        emit Withdraw(withdrawId, block.timestamp);
 
     }
     function getBalance(uint accountId) public view returns (uint) {
